@@ -12,6 +12,7 @@ fetch('https://geektrust.s3-ap-southeast-1.amazonaws.com/adminui-problem/members
   })
   .then(data => {
     originalData = data;
+    loadFromLocalStorage();
     displayData(originalData);
     updatePagination(originalData.length);
   })
@@ -88,15 +89,18 @@ function editUser(userId) {
   if (newName !== null) {
     const userToUpdate = originalData.find(user => user.id == userId);
     userToUpdate.name = newName;
+    saveToLocalStorage();
     displayData(originalData);
   }
 }
 
 function deleteUser(userId) {
   if (confirm('Are you sure you want to delete this user?')) {
-    const updatedData = originalData.filter(user => user.id != userId);
-    displayData(updatedData);
-    updatePagination(updatedData.length);
+    // Filter out the user to be deleted from the data array
+    originalData = originalData.filter(user => user.id != userId);
+    saveToLocalStorage();
+    displayData(originalData);
+    updatePagination(originalData.length);
   }
 }
 
@@ -108,11 +112,14 @@ function deleteSelected() {
   }
 
   if (confirm('Are you sure you want to delete selected users?')) {
-    const updatedData = originalData.filter(user => !Array.from(selectedCheckboxes).some(checkbox => user.id == checkbox.closest('tr').querySelector('td:nth-child(2)').textContent));
-    displayData(updatedData);
-    updatePagination(updatedData.length);
+    // Filter out the selected users from the data array
+    originalData = originalData.filter(user => !Array.from(selectedCheckboxes).some(checkbox => user.id == checkbox.closest('tr').querySelector('td:nth-child(2)').textContent));
+    saveToLocalStorage();
+    displayData(originalData);
+    updatePagination(originalData.length);
   }
 }
+
 
 function filterTable() {
   const searchInput = document.getElementById('searchInput');
@@ -144,4 +151,15 @@ function selectAllRows() {
     checkbox.checked = selectAllCheckbox.checked;
     highlightRow(checkbox);
   });
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem('userData', JSON.stringify(originalData));
+}
+
+function loadFromLocalStorage() {
+  const storedData = localStorage.getItem('userData');
+  if (storedData) {
+    originalData = JSON.parse(storedData);
+  }
 }
